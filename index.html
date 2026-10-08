@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sleep Quality Predictor</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(circle at 20% 20%, #4338ca 0%, transparent 25%),
+                radial-gradient(circle at 80% 10%, #7c3aed 0%, transparent 25%),
+                radial-gradient(circle at 50% 100%, #1e40af 0%, transparent 35%),
+                linear-gradient(135deg, #090b2b, #15104b, #24105c);
+            color: white;
+            padding: 35px 15px;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "✦   ✧      ✦        ⋆    ✧       ✦    ⋆";
+            position: fixed;
+            top: 25px;
+            left: 5%;
+            width: 90%;
+            font-size: 25px;
+            letter-spacing: 25px;
+            color: white;
+            opacity: 0.65;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: "⋆      ✦     ✧       ⋆      ✦       ✧";
+            position: fixed;
+            bottom: 30px;
+            left: 8%;
+            width: 85%;
+            font-size: 18px;
+            letter-spacing: 30px;
+            color: #ddd6fe;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 720px;
+            margin: auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .moon {
+            font-size: 65px;
+            display: inline-block;
+            animation: floatMoon 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 18px #c4b5fd);
+        }
+
+        @keyframes floatMoon {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        h1 {
+            font-size: 38px;
+            margin-top: 8px;
+            background: linear-gradient(90deg, #c4b5fd, #f0abfc, #93c5fd);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            margin-top: 8px;
+            color: #ddd6fe;
+            font-size: 16px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.20);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.35),
+                0 0 30px rgba(139, 92, 246, 0.15);
+        }
+
+        .section-title {
+            color: #f0abfc;
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #e9d5ff;
+            font-weight: 600;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 13px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.20);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.10);
+            color: white;
+            font-size: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input::placeholder {
+            color: #c4b5fd;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #c084fc;
+            box-shadow: 0 0 12px rgba(192, 132, 252, 0.4);
+        }
+
+        option {
+            background: #21134d;
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(90deg, #7c3aed, #c026d3);
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.35);
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(192, 132, 252, 0.5);
+        }
+
+        /* Result */
+
+        .result {
+            margin-top: 25px;
+            padding: 25px;
+            text-align: center;
+            border-radius: 20px;
+            border: 2px solid;
+            animation: resultAppear 0.5s ease;
+        }
+
+        @keyframes resultAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result h2 {
+            margin-bottom: 12px;
+            font-size: 23px;
+        }
+
+        .result p {
+            line-height: 1.6;
+        }
+
+        .good {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: #4ade80;
+        }
+
+        .good h2 {
+            color: #86efac;
+        }
+
+        .average {
+            background: rgba(234, 179, 8, 0.15);
+            border-color: #facc15;
+        }
+
+        .average h2 {
+            color: #fde047;
+        }
+
+        .poor {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #f87171;
+        }
+
+        .poor h2 {
+            color: #fca5a5;
+        }
+
+        /* History */
+
+        .history {
+            margin-top: 30px;
+        }
+
+        .history-title {
+            text-align: center;
+            color: #f0abfc;
+            margin-bottom: 15px;
+            font-size: 21px;
+        }
+
+        .history-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .history-item p {
+            margin: 5px 0;
+            color: #ddd6fe;
+        }
+
+        .history-quality {
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .quality-good {
+            color: #86efac;
+        }
+
+        .quality-average {
+            color: #fde047;
+        }
+
+        .quality-poor {
+            color: #fca5a5;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #a5b4fc;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+
+            body {
+                padding: 25px 12px;
+            }
+
+            h1 {
+                font-size: 29px;
+            }
+
+            .moon {
+                font-size: 52px;
+            }
+
+            .card {
+                padding: 22px;
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="header">
+
+            <div class="moon">🌙</div>
+
+            <h1>Sleep Quality Predictor</h1>
+
+            <p class="subtitle">
+                ✨ A smart way to understand and improve your sleep ✨
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="section-title">
+                🌌 Enter Your Sleep & Lifestyle Details
+            </div>
+
+
+            <form action="/predict" method="POST">
+
+                <div class="form-group">
+                    <label>🛏️ Sleep Duration (hours)</label>
+
+                    <input
+                        type="number"
+                        name="sleep_duration"
+                        step="0.1"
+                        min="0"
+                        max="24"
+                        placeholder="Example: 7.5"
+                        required>
+                </div>
+
+
+                <div class="form-group">
+                    <label>🏃 Exercise Duration (minutes)</label>
+
+                    <input
+                        type="number"
+                        name="exercise_duration"
+                        min="0"
+                        placeholder="Example: 30"
+                        required>
+                </div>
+
+
+                <div class="form-group">
+                    <label>📱 Screen Time Before Bed (minutes)</label>
+
+                    <input
+                        type="number"
+                        name="screen_time"
+                        min="0"
+                        placeholder="Example: 45"
+                        required>
+                </div>
+
+
+                <div class="form-group">
+                    <label>🌙 Bedtime</label>
+
+                    <input
+                        type="time"
+                        name="bedtime"
+                        required>
+                </div>
+
+
+                <div class="form-group">
+                    <label>🌅 Wake-up Time</label>
+
+                    <input
+                        type="time"
+                        name="wake_up_time"
+                        required>
+                </div>
+
+
+                <div class="form-group">
+                    <label>☕ Caffeine Intake</label>
+
+                    <select name="caffeine" required>
+                        <option value="0">None</option>
+                        <option value="1">Low</option>
+                        <option value="2">Moderate</option>
+                        <option value="3">High</option>
+                    </select>
+                </div>
+
+
+                <div class="form-group">
+                    <label>😰 Stress Level (0 - 10)</label>
+
+                    <input
+                        type="number"
+                        name="stress_level"
+                        min="0"
+                        max="10"
+                        placeholder="Example: 4"
+                        required>
+                </div>
+
+
+                <div class="form-group">
+                    <label>😊 Mood Before Sleep</label>
+
+                    <select name="mood" required>
+                        <option value="0">Anxious</option>
+                        <option value="1">Happy</option>
+                        <option value="2">Neutral</option>
+                        <option value="3">Sad</option>
+                    </select>
+                </div>
+
+
+                <div class="form-group">
+                    <label>🌙 Sleep Interruptions</label>
+
+                    <select name="sleep_interruptions" required>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+
+
+                <button type="submit">
+                    🌙 Predict My Sleep Quality
+                </button>
+
+            </form>
+
+
+            {% if prediction %}
+
+                {% if prediction == "Good" %}
+
+                <div class="result good">
+
+                    <h2>
+                        🟢 ✨ Predicted Sleep Quality: Good
+                    </h2>
+
+                    <p>
+                        🌟 Great! Keep maintaining your healthy
+                        sleep habits and enjoy a peaceful night.
+                    </p>
+
+                </div>
+
+
+                {% elif prediction == "Average" %}
+
+                <div class="result average">
+
+                    <h2>
+                        🟡 💜 Predicted Sleep Quality: Average
+                    </h2>
+
+                    <p>
+                        💜 Your sleep could be improved.
+                        Try reducing screen time and maintaining
+                        a regular sleep routine.
+                    </p>
+
+                </div>
+
+
+                {% else %}
+
+                <div class="result poor">
+
+                    <h2>
+                        🔴 🌙 Predicted Sleep Quality: Poor
+                    </h2>
+
+                    <p>
+                        🌙 Your sleep quality may need attention.
+                        Try reducing stress, caffeine and screen
+                        time before bedtime.
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+            {% endif %}
+
+
+            {% if history %}
+
+            <div class="history">
+
+                <div class="history-title">
+                    📊 Prediction History
+                </div>
+
+
+                {% for item in history %}
+
+                <div class="history-item">
+
+                    <p>
+                        🛏️ Sleep Duration:
+                        {{ item.sleep_duration }} hours
+                    </p>
+
+                    <p>
+                        🌙 Bedtime:
+                        {{ item.bedtime }}
+                    </p>
+
+                    <p>
+                        🌅 Wake-up Time:
+                        {{ item.wake_up_time }}
+                    </p>
+
+
+                    {% if item.quality == "Good" %}
+
+                    <p class="history-quality quality-good">
+                        🟢 Sleep Quality: Good
+                    </p>
+
+                    {% elif item.quality == "Average" %}
+
+                    <p class="history-quality quality-average">
+                        🟡 Sleep Quality: Average
+                    </p>
+
+                    {% else %}
+
+                    <p class="history-quality quality-poor">
+                        🔴 Sleep Quality: Poor
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="footer">
+            🌌 Sleep well • Stay healthy • Dream peacefully 🌌
+        </div>
+
+    </div>
+
+</body>
+
+</html>
